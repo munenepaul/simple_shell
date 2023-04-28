@@ -1,100 +1,70 @@
 #include "shell.h"
 
 /**
- * _print - writes a string to stdout
- * @string: pointer to the string
- *
- * Return: the number of bytes written or -1 on failure
+ * _print - writes a array of chars in the standar output
+ * @string: pointer to the array of chars
+ * Return: the number of bytes writed or .
+ * On error, -1 is returned, and errno is set appropriately.
  */
 int _print(char *string)
 {
-	if (!string)
-		return (-1);
-
-	size_t len = strlen(string);
-
-	ssize_t bytes_written = write(STDOUT_FILENO, string, len);
-
-	if (bytes_written < 0)
-		perror("_print");
-
-	return (bytes_written);
+	return (write(STDOUT_FILENO, string, str_length(string)));
 }
-
 /**
- * _printe - writes a string to stderr
- * @string: pointer to the string
- *
- * Return: the number of bytes written or -1 on failure
+ * _printe - writes a array of chars in the standar error
+ * @string: pointer to the array of chars
+ * Return: the number of bytes writed or .
+ * On error, -1 is returned, and errno is set appropriately.
  */
 int _printe(char *string)
 {
-	if (!string)
-		return (-1);
-
-	size_t len = strlen(string);
-
-
-	ssize_t bytes_written = write(STDERR_FILENO, string, len);
-
-	if (bytes_written < 0)
-		perror("_printe");
-
-	return (bytes_written);
+	return (write(STDERR_FILENO, string, str_length(string)));
 }
 
 /**
- * _print_error - writes an error message to stderr
- * @errorcode: the error code
- * @data: pointer to the program's data
- *
- * Return: the number of bytes written or -1 on failure
+ * _print_error - writes a array of chars in the standart error
+ * @data: a pointer to the program's data'
+ * @errorcode: error code to print
+ * Return: the number of bytes writed or .
+ * On error, -1 is returned, and errno is set appropriately.
  */
 int _print_error(int errorcode, data_of_program *data)
 {
-	if (!data || !data->program_name || !data->tokens[0] ||
-	    (!data->tokens[1] && (errorcode == 2 || errorcode == 3)))
-		return (-1);
-
-
 	char n_as_string[10] = {'\0'};
 
-	long_to_string((long)data->exec_counter, n_as_string, 10);
+	long_to_string((long) data->exec_counter, n_as_string, 10);
 
-	int ret = 0;
-
-	switch (errorcode)
+	if (errorcode == 2 || errorcode == 3)
 	{
-	case 2:
-	case 3:
-		ret = _printe(data->program_name) +
-			_printe(": ") +
-			_printe(n_as_string) +
-			_printe(": ") +
-			_printe(data->tokens[0]) +
-			_printe(": Illegal number: ") +
-			_printe(data->tokens[1]) +
-			_printe("\n");
-		break;
-	case 127:
-		ret = _printe(data->program_name) +
-			_printe(": ") +
-			_printe(n_as_string) +
-			_printe(": ") +
-			_printe(data->command_name) +
-			_printe(": not found\n");
-		break;
-	case 126:
-		ret = _printe(data->program_name) +
-			_printe(": ") +
-			_printe(n_as_string) +
-			_printe(": ") +
-			_printe(data->command_name) +
-			_printe(": Permission denied\n");
-		break;
-	default:
-		break;
+		_printe(data->program_name);
+		_printe(": ");
+		_printe(n_as_string);
+		_printe(": ");
+		_printe(data->tokens[0]);
+		if (errorcode == 2)
+			_printe(": Illegal number: ");
+		else
+			_printe(": can't cd to ");
+		_printe(data->tokens[1]);
+		_printe("\n");
 	}
-
-	return (ret);
+	else if (errorcode == 127)
+	{
+		_printe(data->program_name);
+		_printe(": ");
+		_printe(n_as_string);
+		_printe(": ");
+		_printe(data->command_name);
+		_printe(": not found\n");
+	}
+	else if (errorcode == 126)
+	{
+		_printe(data->program_name);
+		_printe(": ");
+		_printe(n_as_string);
+		_printe(": ");
+		_printe(data->command_name);
+		_printe(": Permission denied\n");
+	}
+	return (0);
 }

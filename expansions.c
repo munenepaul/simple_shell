@@ -8,26 +8,21 @@
  */
 void expand_variables(data_of_program *data)
 {
-	int i = 0, j = 0;
+	int i, j;
 	char line[BUFFER_SIZE] = {0}, expansion[BUFFER_SIZE] = {'\0'}, *temp;
 
 	if (data->input_line == NULL)
 		return;
 	buffer_add(line, data->input_line);
-
-	while (line[i])
-	{
+	for (i = 0; line[i]; i++)
 		if (line[i] == '#')
-		{
 			line[i--] = '\0';
-		}
 		else if (line[i] == '$' && line[i + 1] == '?')
 		{
 			line[i] = '\0';
 			long_to_string(errno, expansion, 10);
 			buffer_add(line, expansion);
 			buffer_add(line, data->input_line + i + 2);
-			i += 2;
 		}
 		else if (line[i] == '$' && line[i + 1] == '$')
 		{
@@ -35,33 +30,19 @@ void expand_variables(data_of_program *data)
 			long_to_string(getpid(), expansion, 10);
 			buffer_add(line, expansion);
 			buffer_add(line, data->input_line + i + 2);
-			i += 2;
 		}
 		else if (line[i] == '$' && (line[i + 1] == ' ' || line[i + 1] == '\0'))
-		{
-			i++;
 			continue;
-		}
 		else if (line[i] == '$')
 		{
 			for (j = 1; line[i + j] && line[i + j] != ' '; j++)
-			{
 				expansion[j - 1] = line[i + j];
-			}
 			temp = env_get_key(expansion, data);
-			line[i] = '\0';
-			expansion[0] = '\0';
+			line[i] = '\0', expansion[0] = '\0';
 			buffer_add(expansion, line + i + j);
 			temp ? buffer_add(line, temp) : 1;
 			buffer_add(line, expansion);
-			i += j;
 		}
-		else
-		{
-			i++;
-		}
-	}
-
 	if (!str_compare(data->input_line, line, 0))
 	{
 		free(data->input_line);
@@ -69,45 +50,45 @@ void expand_variables(data_of_program *data)
 	}
 }
 
-
 /**
- * expand_alias - expand aliases
+ * expand_alias - expans aliases
  * @data: a pointer to a struct of the program's data
  *
  * Return: nothing, but sets errno.
  */
 void expand_alias(data_of_program *data)
 {
-	char line[BUFFER_SIZE] = {0}, *token, *temp;
-	int was_expanded = 0;
-
+	int i, j, was_expanded = 0;
+	char line[BUFFER_SIZE] = {0}, expansion[BUFFER_SIZE] = {'\0'}, *temp;
 
 	if (data->input_line == NULL)
 		return;
 
 	buffer_add(line, data->input_line);
 
-	token = strtok(line, " ");
-	while (token != NULL)
+	for (i = 0; line[i]; i++)
 	{
-		temp = get_alias(data, token);
+		for (j = 0; line[i + j] && line[i + j] != ' '; j++)
+			expansion[j] = line[i + j];
+		expansion[j] = '\0';
+
+		temp = get_alias(data, expansion);
 		if (temp)
 		{
-			free(token);
-			token = str_duplicate(temp);
+			expansion[0] = '\0';
+			buffer_add(expansion, line + i + j);
+			line[i] = '\0';
+			buffer_add(line, temp);
+			line[str_length(line)] = '\0';
+			buffer_add(line, expansion);
 			was_expanded = 1;
 		}
-
-		buffer_add(data->expanded_line, token);
-		buffer_add(data->expanded_line, " ");
-
-		token = strtok(NULL, " ");
+		break;
 	}
-
 	if (was_expanded)
 	{
 		free(data->input_line);
-		data->input_line = str_duplicate(data->expanded_line);
+		data->input_line = str_duplicate(line);
 	}
 }
 

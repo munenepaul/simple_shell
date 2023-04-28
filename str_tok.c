@@ -1,37 +1,42 @@
+#include "shell.h"
 /**
- * _strtok - tokenizes a string
- * @line: string to tokenize
- * @delim: delimiter characters
- *
- * Return: pointer to the next token, NULL if no more tokens
- */
-char *_strtok(char *line, const char *delim)
+ * _strtok - separates strings with delimiters
+ * @line: It´s pointer to array we receive in getline.
+ * @delim: It´s characters we mark off string in parts.
+ * Return: A pointer to the created token
+*/
+char *_strtok(char *line, char *delim)
 {
-	static char *next_token = NULL;
-	char *token;
+	int j;
+	static char *str;
+	char *copystr;
 
 	if (line != NULL)
-		next_token = line;
-
-	if (next_token == NULL || *next_token == '\0')
-		return NULL;
-
-	token = next_token;
-
-	while (*next_token != '\0')
+		str = line;
+	for (; *str != '\0'; str++)
 	{
-		const char *d;
-		for (d = delim; *d != '\0'; d++)
+		for (j = 0; delim[j] != '\0'; j++)
 		{
-			if (*next_token == *d)
+			if (*str == delim[j])
+			break;
+		}
+		if (delim[j] == '\0')
+			break;
+	}
+	copystr = str;
+	if (*copystr == '\0')
+		return (NULL);
+	for (; *str != '\0'; str++)
+	{
+		for (j = 0; delim[j] != '\0'; j++)
+		{
+			if (*str == delim[j])
 			{
-				*next_token = '\0';
-				next_token++;
-				return token;
+				*str = '\0';
+				str++;
+				return (copystr);
 			}
 		}
-		next_token++;
 	}
-
-	return token;
+	return (copystr);
 }
